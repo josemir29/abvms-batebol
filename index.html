@@ -13,6 +13,68 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px}
 .app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;background:#fff}
+
+/* ── iPad / tablet (768px+) ── */
+@media(min-width:768px){
+  body{background:#f0f0ee}
+  .app{max-width:100%;flex-direction:column;background:transparent}
+  .header{background:#fff;border-radius:0;border-bottom:1px solid #e5e7eb;padding:14px 24px 12px}
+  .tabs{display:none} /* abas somem — painel sempre visível */
+  .content{padding:0;overflow:visible;background:transparent;flex:1;display:flex;flex-direction:column}
+  .page{display:block!important} /* todas as páginas visíveis */
+
+  /* Grid principal do dashboard */
+  .ipad-grid{
+    display:grid;
+    grid-template-columns:320px 1fr 320px;
+    grid-template-rows:1fr;
+    gap:12px;
+    padding:12px 16px 16px;
+    height:100%;
+    min-height:0;
+  }
+
+  /* Cada painel rola independentemente */
+  .ipad-col{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    overflow-y:auto;
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    min-height:0;
+  }
+  .ipad-col-title{
+    font-size:11px;font-weight:600;color:#9ca3af;
+    text-transform:uppercase;letter-spacing:0.07em;
+    padding-bottom:8px;border-bottom:1px solid #f3f4f6;
+    margin-bottom:2px;flex-shrink:0;
+  }
+
+  /* Coluna esquerda: Presença */
+  .ipad-left{grid-column:1}
+  /* Coluna centro: Quadra + Placar empilhados */
+  .ipad-center{grid-column:2;gap:10px}
+  /* Coluna direita: Súmula */
+  .ipad-right{grid-column:3}
+
+  /* Cards dentro do painel ficam sem margem extra */
+  .ipad-col .card{margin-bottom:0}
+  .ipad-col .stats-bar{margin-bottom:0}
+
+  /* Stats bar em 2 colunas no painel de presença */
+  .ipad-col .stats-bar{grid-template-columns:repeat(3,1fr)}
+}
+
+@media(min-width:768px) and (orientation:landscape){
+  .ipad-grid{
+    grid-template-columns:300px 1fr 300px;
+    padding:10px 14px 14px;
+    gap:10px;
+  }
+}
 .header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid #eee;flex-shrink:0;background:#fff}
 .header-left{display:flex;align-items:center;gap:10px}
 .header-logo{width:34px;height:auto}
@@ -330,17 +392,54 @@ function sndClick(){beep(440,.06,'sine',.12,0);}
 function toggleSound(){soundOn=!soundOn;document.getElementById('sound-btn').textContent=soundOn?'🔔':'🔕';}
 
 // ─── DADOS ───────────────────────────────────────────────
-const ROSTER=[
-  {name:'Sagui',pos:'Armador'},{name:'China',pos:'Armador'},{name:'Piu-Piu',pos:'Armador'},{name:'Abóbora',pos:'Armador'},
-  {name:'Totó',pos:'Ala-Armador'},{name:'Kone',pos:'Ala-Armador'},{name:'Fidel',pos:'Ala-Armador'},{name:'Índio',pos:'Ala-Armador'},
-  {name:'Alicate',pos:'Ala-Armador'},{name:'Joelhinho',pos:'Ala-Armador'},{name:'Consul',pos:'Ala-Armador'},{name:'Kichute',pos:'Ala-Armador'},
-  {name:'Panda',pos:'Ala'},{name:'Lafon',pos:'Ala'},{name:'Botox',pos:'Ala'},{name:'Moringa',pos:'Ala'},
-  {name:'Pirulito',pos:'Ala'},{name:'Cindy',pos:'Ala'},{name:'Cutia',pos:'Ala'},{name:'Panqueca',pos:'Ala'},
-  {name:'Tiozão',pos:'Ala'},{name:'Nerd',pos:'Ala'},
-  {name:'Ganso',pos:'Ala-Pivô'},{name:'Babi',pos:'Ala-Pivô'},{name:'PlayMobil',pos:'Ala-Pivô'},{name:'Bozo',pos:'Ala-Pivô'},
-  {name:'iPod',pos:'Ala-Pivô'},{name:'Chanel',pos:'Ala-Pivô'},{name:'Nhonho',pos:'Ala-Pivô'},
-  {name:'Salsicha',pos:'Pivô'},{name:'Félix',pos:'Pivô'},{name:'Miúdo',pos:'Pivô'},{name:'Vareta',pos:'Pivô'},{name:'Prozac',pos:'Pivô'},
+// Roster atualizado — cadastro oficial ABV-MS mar/2026
+// Idade calculada dinamicamente a cada sessão
+const ROSTER_DATA=[
+  {name:'Fidel',    pos:'Armador',    dob:'02/05/1950'},
+  {name:'Sagui',    pos:'Armador',    dob:'04/08/1967'},
+  {name:'Abóbora',  pos:'Armador',    dob:'29/11/1968'},
+  {name:'China',    pos:'Armador',    dob:'30/10/1980'},
+  {name:'Piu-Piu',  pos:'Armador',    dob:'02/08/1991'},
+  {name:'Kichute',  pos:'Ala-Armador',dob:'04/10/1962'},
+  {name:'Totó',     pos:'Ala-Armador',dob:'12/06/1967'},
+  {name:'Kone',     pos:'Ala-Armador',dob:'12/09/1969'},
+  {name:'Alicate',  pos:'Ala-Armador',dob:'26/01/1970'},
+  {name:'Consul',   pos:'Ala-Armador',dob:'28/05/1972'},
+  {name:'Índio',    pos:'Ala-Armador',dob:'05/02/1987'},
+  {name:'Joelhinho',pos:'Ala-Armador',dob:'29/03/1992'},
+  {name:'Repolho',  pos:'Ala',        dob:'13/09/1963'},
+  {name:'Panqueca', pos:'Ala',        dob:'03/03/1972'},
+  {name:'Cutia',    pos:'Ala',        dob:'25/02/1976'},
+  {name:'Nerd',     pos:'Ala',        dob:'04/06/1976'},
+  {name:'Botox',    pos:'Ala',        dob:'27/02/1978'},
+  {name:'Lafon',    pos:'Ala',        dob:'29/07/1980'},
+  {name:'Moringa',  pos:'Ala',        dob:'30/10/1980'},
+  {name:'Panda',    pos:'Ala',        dob:'01/07/1982'},
+  {name:'Cindy',    pos:'Ala',        dob:'13/11/1983'},
+  {name:'Pirulito', pos:'Ala',        dob:'03/03/1990'},
+  {name:'Tiozão',   pos:'Ala',        dob:null},
+  {name:'Bereco',   pos:'Ala-Pivô',   dob:'15/04/1957'},
+  {name:'Bozo',     pos:'Ala-Pivô',   dob:'20/07/1966'},
+  {name:'Babi',     pos:'Ala-Pivô',   dob:'31/12/1966'},
+  {name:'PlayMobil',pos:'Ala-Pivô',   dob:'07/01/1969'},
+  {name:'iPod',     pos:'Ala-Pivô',   dob:'19/10/1970'},
+  {name:'Nhonho',   pos:'Ala-Pivô',   dob:'05/03/1974'},
+  {name:'Ganso',    pos:'Ala-Pivô',   dob:'29/07/1975'},
+  {name:'Chanel',   pos:'Ala-Pivô',   dob:'29/07/1978'},
+  {name:'Vareta',   pos:'Pivô',       dob:'08/02/1961'},
+  {name:'Prozac',   pos:'Pivô',       dob:'12/09/1966'},
+  {name:'Miúdo',    pos:'Pivô',       dob:'13/07/1980'},
+  {name:'Félix',    pos:'Pivô',       dob:'19/01/1990'},
+  {name:'Salsicha', pos:'Pivô',       dob:'14/09/1991'},
 ];
+function calcAge(dob){
+  if(!dob)return null;
+  try{const p=dob.split('/');const d=new Date(+p[2],+p[1]-1,+p[0]);const t=new Date();
+  let a=t.getFullYear()-d.getFullYear();
+  if(t.getMonth()<d.getMonth()||(t.getMonth()===d.getMonth()&&t.getDate()<d.getDate()))a--;
+  return a;}catch(e){return null;}
+}
+const ROSTER=ROSTER_DATA.map(r=>({...r,age:calcAge(r.dob)}));
 const POS_ORDER=['Armador','Ala-Armador','Ala','Ala-Pivô','Pivô'];
 
 /*
@@ -429,7 +528,9 @@ function togglePresence(name,pos){
     S.players=S.players.filter(x=>x.id!==p.id);
   } else {
     const id=Date.now()+Math.random();
-    S.players.push({id,name,pos,isGuest:false,gamesPlayed:0,wins:0});
+    const rEntry=ROSTER.find(r=>r.name===name);
+    const age=rEntry?rEntry.age:null;
+    S.players.push({id,name,pos,age,isGuest:false,gamesPlayed:0,wins:0});
     S.waitList.push(id);
     if(!S.stats[name])S.stats[name]={wins:0,games:0};
     tryFormTeams();
@@ -440,7 +541,7 @@ function togglePresence(name,pos){
 function addGuest(){
   const inp=document.getElementById('new-name'); const name=inp.value.trim(); if(!name)return; sndClick();
   guestId++;
-  S.players.push({id:guestId,name:name+' (conv.)',pos:'Convidado',isGuest:true,gamesPlayed:0,wins:0});
+  S.players.push({id:guestId,name:name+' (conv.)',pos:'Convidado',age:null,isGuest:true,gamesPlayed:0,wins:0});
   S.waitList.push(guestId);
   if(!S.stats[name+' (conv.)'])S.stats[name+' (conv.)']={wins:0,games:0};
   inp.value=''; tryFormTeams(); updateStats(); renderAssocList(); renderPlayerList(); renderCourt();
@@ -530,7 +631,8 @@ function renderAssocList(){
     groups[pos].forEach(r=>{
       const p=S.players.find(x=>x.name===r.name); let cls='assoc-btn',icon='';
       if(p){if(S.teamBlue.includes(p.id)){cls='assoc-btn in-court-blue';icon='🔵';}else if(S.teamYellow.includes(p.id)){cls='assoc-btn in-court-yellow';icon='🟡';}else{cls='assoc-btn present';icon='✓';}}
-      html+='<button class="'+cls+'" onclick="togglePresence(\''+r.name+'\',\''+r.pos+'\')"><span>'+r.name+'</span><span style="font-size:12px">'+icon+'</span></button>';
+      const ageL=r.age?'<span style="font-size:10px;opacity:0.65;margin-left:3px">'+r.age+'a</span>':'';
+      html+='<button class="'+cls+'" onclick="togglePresence(\''+r.name+'\',\''+r.pos+'\')"><span>'+r.name+ageL+'</span><span style="font-size:12px">'+icon+'</span></button>';
     });
     html+='</div>';
   });
@@ -548,7 +650,8 @@ function renderPlayerList(){
     if(isB)badge='<span class="pill pill-blue" style="font-size:10px;padding:2px 7px">🔵 Azul</span>';
     else if(isY)badge='<span class="pill pill-yellow" style="font-size:10px;padding:2px 7px">🟡 Amarelo</span>';
     else if(wPos>=0)badge='<span class="pill pill-gray" style="font-size:10px;padding:2px 7px">Espera #'+(wPos+1)+'</span>';
-    row.innerHTML='<span class="p-num">'+(i+1)+'</span><span class="p-name">'+p.name+'</span><span class="p-pos">'+p.pos+'</span>'+badge+'<button class="p-rm" onclick="removePresent('+JSON.stringify(p.id)+')">×</button>';
+    const ageTag=p.age?'<span style="font-size:10px;color:#9ca3af;margin-left:4px">'+p.age+'a</span>':'';
+    row.innerHTML='<span class="p-num">'+(i+1)+'</span><span class="p-name">'+p.name+ageTag+'</span><span class="p-pos">'+p.pos+'</span>'+badge+'<button class="p-rm" onclick="removePresent('+JSON.stringify(p.id)+')">×</button>';
     list.appendChild(row);
   });
   updateStats();
@@ -606,8 +709,9 @@ function renderCourt(){
   wB.innerHTML=S.blueWinsStreak>0?'<span class="pill pill-green" style="font-size:10px;padding:2px 7px">'+S.blueWinsStreak+'V</span>':'';
   wY.innerHTML=S.yellowWinsStreak>0?'<span class="pill pill-green" style="font-size:10px;padding:2px 7px">'+S.yellowWinsStreak+'V</span>':'';
 
-  document.getElementById('team-blue-players').innerHTML=S.teamBlue.map(id=>{const p=byId(id);return p?'<div class="team-player">'+p.name+'</div>':''}).join('');
-  document.getElementById('team-yellow-players').innerHTML=S.teamYellow.map(id=>{const p=byId(id);return p?'<div class="team-player">'+p.name+'</div>':''}).join('');
+  const playerLine=p=>p?'<div class="team-player">'+p.name+(p.age?'<span style="font-size:11px;color:#9ca3af;margin-left:5px">'+p.age+'a</span>':'')+'</div>':'';
+  document.getElementById('team-blue-players').innerHTML=S.teamBlue.map(id=>playerLine(byId(id))).join('');
+  document.getElementById('team-yellow-players').innerHTML=S.teamYellow.map(id=>playerLine(byId(id))).join('');
 
   // Próximo time
   const ne=document.getElementById('next-preview');
@@ -622,7 +726,7 @@ function renderCourt(){
   // Lista de espera
   document.getElementById('waiting-list').innerHTML=!S.waitList.length
     ?'<div class="empty-state">Nenhum na espera</div>'
-    :S.waitList.map((id,i)=>{const p=byId(id);return p?'<div class="player-row"><span class="p-num">'+(i+1)+'</span><span class="p-name">'+p.name+'</span><span class="p-pos">'+p.pos+'</span><span class="pill pill-gray" style="font-size:10px;padding:2px 7px">#'+(i+1)+'</span></div>':''}).join('');
+    :S.waitList.map((id,i)=>{const p=byId(id);return p?'<div class="player-row"><span class="p-num">'+(i+1)+'</span><span class="p-name">'+p.name+(p.age?'<span style="font-size:10px;color:#9ca3af;margin-left:4px">'+p.age+'a</span>':'')+'</span><span class="p-pos">'+p.pos+'</span><span class="pill pill-gray" style="font-size:10px;padding:2px 7px">#'+(i+1)+'</span></div>':''}).join('');
 }
 
 // ─── DECLARAR VENCEDOR ────────────────────────────────────
@@ -956,6 +1060,95 @@ function resetAll(){
 
 if('serviceWorker'in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{});});}
 renderAssocList();renderPlayerList();renderCourt();updateTimerDisplay();
+
+// ── iPad dashboard layout ──────────────────────────────
+function isTablet(){return window.innerWidth>=768;}
+
+function buildIPadLayout(){
+  if(!isTablet())return;
+
+  const content=document.querySelector('.content');
+  const lista=document.getElementById('page-lista');
+  const quadra=document.getElementById('page-quadra');
+  const placar=document.getElementById('page-placar');
+  const hist=document.getElementById('page-hist');
+
+  // Só monta uma vez
+  if(document.querySelector('.ipad-grid'))return;
+
+  // Cria grid
+  const grid=document.createElement('div');
+  grid.className='ipad-grid';
+
+  // Coluna esquerda: Presença
+  const left=document.createElement('div');
+  left.className='ipad-col ipad-left';
+  const ltitle=document.createElement('div');
+  ltitle.className='ipad-col-title';
+  ltitle.textContent='Presença';
+  left.appendChild(ltitle);
+  left.appendChild(lista);
+
+  // Coluna centro: Quadra + Placar
+  const center=document.createElement('div');
+  center.className='ipad-col ipad-center';
+  const ctitle=document.createElement('div');
+  ctitle.className='ipad-col-title';
+  ctitle.textContent='Quadra & Placar';
+  center.appendChild(ctitle);
+  center.appendChild(quadra);
+  center.appendChild(placar);
+
+  // Coluna direita: Súmula
+  const right=document.createElement('div');
+  right.className='ipad-col ipad-right';
+  const rtitle=document.createElement('div');
+  rtitle.className='ipad-col-title';
+  rtitle.textContent='Súmula';
+  right.appendChild(rtitle);
+  right.appendChild(hist);
+
+  grid.appendChild(left);
+  grid.appendChild(center);
+  grid.appendChild(right);
+  content.appendChild(grid);
+
+  // Forçar todas as páginas visíveis
+  [lista,quadra,placar,hist].forEach(p=>{p.style.display='block';});
+
+  // Re-render
+  renderAssocList();renderPlayerList();renderCourt();renderHistory();updateTimerDisplay();
+}
+
+function teardownIPadLayout(){
+  const grid=document.querySelector('.ipad-grid');
+  if(!grid)return;
+  const content=document.querySelector('.content');
+  const lista=document.getElementById('page-lista');
+  const quadra=document.getElementById('page-quadra');
+  const placar=document.getElementById('page-placar');
+  const hist=document.getElementById('page-hist');
+  // Devolve páginas ao content
+  [lista,quadra,placar,hist].forEach(p=>{
+    p.style.display='';
+    content.appendChild(p);
+  });
+  grid.remove();
+  // Restaura tab ativa
+  switchTab('lista');
+}
+
+let _wasTablet=isTablet();
+window.addEventListener('resize',()=>{
+  const now=isTablet();
+  if(now&&!_wasTablet){buildIPadLayout();}
+  else if(!now&&_wasTablet){teardownIPadLayout();}
+  _wasTablet=now;
+  renderCourt();
+});
+
+// Inicializa
+if(isTablet()){buildIPadLayout();}
 </script>
 </body>
 </html>
