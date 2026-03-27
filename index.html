@@ -63,37 +63,46 @@ html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system
   .ipad-center .score-label-yellow{font-size:15px;letter-spacing:0.08em}
   .ipad-center .score-controls button{padding:8px 14px;font-size:15px}
 
-  /* Placar azul: fundo azul real */
+  /* Linha de placares: Azul | × | Amarelo lado a lado */
+  .ipad-placar-row{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    gap:8px;
+    align-items:stretch;
+    flex-shrink:0;
+  }
+
+  /* Placar azul */
   .ipad-placar-blue{
     background:#1d4ed8;border-radius:12px;
-    padding:16px 20px;text-align:center;flex-shrink:0;
+    padding:12px 10px;text-align:center;
   }
-  .ipad-placar-blue .score-label-blue{color:#bfdbfe;font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:4px}
-  .ipad-placar-blue .score-num{color:#ffffff;font-size:110px;font-weight:700;line-height:1;display:block;font-variant-numeric:tabular-nums}
-  .ipad-placar-blue .score-controls{display:flex;gap:8px;justify-content:center;margin-top:10px}
-  .ipad-placar-blue .score-controls button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:15px;font-weight:700;padding:8px 16px;cursor:pointer;font-family:inherit}
-  .ipad-placar-blue .score-controls button:active{background:rgba(255,255,255,0.3)}
+  .ipad-placar-blue .ipad-score-label{color:#bfdbfe;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+  .ipad-placar-blue .ipad-score-num{color:#ffffff;font-size:80px;font-weight:700;line-height:1;display:block;font-variant-numeric:tabular-nums}
+  .ipad-placar-blue .ipad-score-controls{display:flex;gap:5px;justify-content:center;margin-top:8px}
+  .ipad-placar-blue .ipad-score-controls button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:7px;color:#fff;font-size:13px;font-weight:700;padding:6px 10px;cursor:pointer;font-family:inherit}
+  .ipad-placar-blue .ipad-score-controls button:active{background:rgba(255,255,255,0.35)}
 
-  /* Placar amarelo: fundo amarelo real */
+  /* Placar amarelo */
   .ipad-placar-yellow{
     background:#ca8a04;border-radius:12px;
-    padding:16px 20px;text-align:center;flex-shrink:0;
+    padding:12px 10px;text-align:center;
   }
-  .ipad-placar-yellow .score-label-yellow{color:#fef08a;font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:4px}
-  .ipad-placar-yellow .score-num{color:#ffffff;font-size:110px;font-weight:700;line-height:1;display:block;font-variant-numeric:tabular-nums}
-  .ipad-placar-yellow .score-controls{display:flex;gap:8px;justify-content:center;margin-top:10px}
-  .ipad-placar-yellow .score-controls button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:15px;font-weight:700;padding:8px 16px;cursor:pointer;font-family:inherit}
-  .ipad-placar-yellow .score-controls button:active{background:rgba(255,255,255,0.3)}
+  .ipad-placar-yellow .ipad-score-label{color:#fef08a;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+  .ipad-placar-yellow .ipad-score-num{color:#ffffff;font-size:80px;font-weight:700;line-height:1;display:block;font-variant-numeric:tabular-nums}
+  .ipad-placar-yellow .ipad-score-controls{display:flex;gap:5px;justify-content:center;margin-top:8px}
+  .ipad-placar-yellow .ipad-score-controls button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:7px;color:#fff;font-size:13px;font-weight:700;padding:6px 10px;cursor:pointer;font-family:inherit}
+  .ipad-placar-yellow .ipad-score-controls button:active{background:rgba(255,255,255,0.35)}
 
-  /* Divisor × entre os placares */
-  .ipad-vs{text-align:center;font-size:32px;color:#d1d5db;padding:4px 0;flex-shrink:0}
+  /* × entre placares */
+  .ipad-vs{display:flex;align-items:center;justify-content:center;font-size:24px;color:#d1d5db;font-weight:300;width:24px}
 
-  /* Cronômetro menor e compacto abaixo do placar */
-  .ipad-center .timer-num{font-size:72px;letter-spacing:-2px}
-  .ipad-center .timer-wrap{padding:10px 0 6px}
+  /* Cronômetro compacto abaixo */
+  .ipad-center .timer-num{font-size:58px;letter-spacing:-2px}
+  .ipad-center .timer-wrap{padding:6px 0 4px}
   .ipad-center .timer-sub{font-size:11px}
-  .ipad-center .timer-bar-wrap{height:4px;margin:6px 0 10px}
-  .ipad-center .btn{padding:9px 12px;font-size:12px}
+  .ipad-center .timer-bar-wrap{height:4px;margin:4px 0 8px}
+  .ipad-center .btn{padding:8px 10px;font-size:12px}
 
   /* Súmula dentro da coluna direita, abaixo da espera */
   .ipad-sumula-inline{flex-shrink:0}
@@ -105,9 +114,9 @@ html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system
     padding:8px 12px 12px;
     gap:8px;
   }
-  .ipad-placar-blue .score-num,
-  .ipad-placar-yellow .score-num{font-size:130px}
-  .ipad-center .timer-num{font-size:80px}
+  .ipad-placar-blue .ipad-score-num,
+  .ipad-placar-yellow .ipad-score-num{font-size:96px}
+  .ipad-center .timer-num{font-size:64px}
 }
 .header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid #eee;flex-shrink:0;background:#fff}
 .header-left{display:flex;align-items:center;gap:10px}
@@ -1138,36 +1147,39 @@ function buildIPadLayout(){
   center.className='ipad-col ipad-center';
   center.innerHTML='<div class="ipad-col-title">Placar</div>';
 
-  // Placar Azul
+  // Linha de placares lado a lado
+  const placarRow=document.createElement('div');
+  placarRow.className='ipad-placar-row';
+
   const pbBlue=document.createElement('div');
   pbBlue.className='ipad-placar-blue';
   pbBlue.innerHTML=`
-    <span class="score-label-blue">🔵 Azul</span>
-    <span class="score-num" id="score-blue-ipad">0</span>
-    <div class="score-controls">
+    <span class="ipad-score-label">🔵 AZUL</span>
+    <span class="ipad-score-num" id="score-blue-ipad">0</span>
+    <div class="ipad-score-controls">
       <button onclick="changeScore('blue',2)">+2</button>
       <button onclick="changeScore('blue',3)">+3</button>
       <button onclick="changeScore('blue',-1)">−</button>
     </div>`;
-  center.appendChild(pbBlue);
 
-  // VS
   const vs=document.createElement('div');
   vs.className='ipad-vs';vs.textContent='×';
-  center.appendChild(vs);
 
-  // Placar Amarelo
   const pbYellow=document.createElement('div');
   pbYellow.className='ipad-placar-yellow';
   pbYellow.innerHTML=`
-    <span class="score-label-yellow">🟡 Amarelo</span>
-    <span class="score-num" id="score-yellow-ipad">0</span>
-    <div class="score-controls">
+    <span class="ipad-score-label">🟡 AMARELO</span>
+    <span class="ipad-score-num" id="score-yellow-ipad">0</span>
+    <div class="ipad-score-controls">
       <button onclick="changeScore('yellow',2)">+2</button>
       <button onclick="changeScore('yellow',3)">+3</button>
       <button onclick="changeScore('yellow',-1)">−</button>
     </div>`;
-  center.appendChild(pbYellow);
+
+  placarRow.appendChild(pbBlue);
+  placarRow.appendChild(vs);
+  placarRow.appendChild(pbYellow);
+  center.appendChild(placarRow);
 
   // Cronômetro (page-placar sem o card de placar — só o timer card)
   // Vamos colocar a page-placar inteira mas o CSS esconde o card de placar dela
