@@ -19,22 +19,21 @@ html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system
   body{background:#f0f0ee}
   .app{max-width:100%;flex-direction:column;background:transparent}
   .header{background:#fff;border-radius:0;border-bottom:1px solid #e5e7eb;padding:14px 24px 12px}
-  .tabs{display:none} /* abas somem — painel sempre visível */
-  .content{padding:0;overflow:visible;background:transparent;flex:1;display:flex;flex-direction:column}
-  .page{display:block!important} /* todas as páginas visíveis */
+  .tabs{display:none}
+  .content{padding:0;overflow:visible;background:transparent;flex:1;display:flex;flex-direction:column;min-height:0}
+  .page{display:none}
+  .page.ipad-visible{display:block!important}
 
-  /* Grid principal do dashboard */
+  /* Grid principal: Presença | Cronômetro+Placar | Quadra+Espera */
   .ipad-grid{
     display:grid;
-    grid-template-columns:320px 1fr 320px;
-    grid-template-rows:1fr;
+    grid-template-columns:300px 1fr 340px;
     gap:12px;
     padding:12px 16px 16px;
-    height:100%;
+    flex:1;
     min-height:0;
   }
 
-  /* Cada painel rola independentemente */
   .ipad-col{
     background:#fff;
     border:1px solid #e5e7eb;
@@ -50,30 +49,38 @@ html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system
     font-size:11px;font-weight:600;color:#9ca3af;
     text-transform:uppercase;letter-spacing:0.07em;
     padding-bottom:8px;border-bottom:1px solid #f3f4f6;
-    margin-bottom:2px;flex-shrink:0;
+    flex-shrink:0;
   }
+  .ipad-col .card{margin-bottom:0;flex-shrink:0}
+  .ipad-col .stats-bar{margin-bottom:0;flex-shrink:0}
 
-  /* Coluna esquerda: Presença */
-  .ipad-left{grid-column:1}
-  /* Coluna centro: Quadra + Placar empilhados */
-  .ipad-center{grid-column:2;gap:10px}
-  /* Coluna direita: Súmula */
-  .ipad-right{grid-column:3}
+  /* Centro: cronômetro maior para leitura a distância */
+  .ipad-center .timer-num{font-size:120px;letter-spacing:-4px}
+  .ipad-center .score-num{font-size:96px}
+  .ipad-center .timer-bar-wrap{height:6px}
 
-  /* Cards dentro do painel ficam sem margem extra */
-  .ipad-col .card{margin-bottom:0}
-  .ipad-col .stats-bar{margin-bottom:0}
-
-  /* Stats bar em 2 colunas no painel de presença */
-  .ipad-col .stats-bar{grid-template-columns:repeat(3,1fr)}
+  /* Súmula: só aparece quando selecionada via aba */
+  .ipad-sumula-panel{display:none}
+  .ipad-sumula-panel.active{
+    display:block;
+    padding:14px 16px 24px;
+    overflow-y:auto;
+    flex:1;
+  }
+  /* Aba do iPad */
+  #ipad-tab-bar{
+    border-bottom:1px solid #e5e7eb;
+  }
 }
 
 @media(min-width:768px) and (orientation:landscape){
   .ipad-grid{
-    grid-template-columns:300px 1fr 300px;
+    grid-template-columns:280px 1fr 320px;
     padding:10px 14px 14px;
     gap:10px;
   }
+  .ipad-center .timer-num{font-size:140px}
+  .ipad-center .score-num{font-size:110px}
 }
 .header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid #eee;flex-shrink:0;background:#fff}
 .header-left{display:flex;align-items:center;gap:10px}
@@ -219,11 +226,16 @@ html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system
     </div>
   </div>
 
-  <div class="tabs">
+  <div class="tabs" id="main-tabs">
     <button class="tab active" onclick="switchTab('lista')">Presença</button>
     <button class="tab" onclick="switchTab('quadra')">Quadra</button>
     <button class="tab" onclick="switchTab('placar')">Placar</button>
     <button class="tab" onclick="switchTab('hist')">Súmula</button>
+  </div>
+  <!-- Aba extra só no iPad: acesso à Súmula fora do dashboard -->
+  <div id="ipad-tab-bar" style="display:none;padding:8px 16px 0;background:#fff;gap:8px;justify-content:flex-end">
+    <button id="ipad-tab-sumula" class="tab" onclick="toggleIPadSumula()" style="flex:0;padding:8px 16px">📄 Súmula</button>
+    <button id="ipad-tab-back" class="tab" onclick="closeIPadSumula()" style="display:none;flex:0;padding:8px 16px">✕ Fechar Súmula</button>
   </div>
 
   <div class="content">
@@ -1065,76 +1077,100 @@ renderAssocList();renderPlayerList();renderCourt();updateTimerDisplay();
 function isTablet(){return window.innerWidth>=768;}
 
 function buildIPadLayout(){
-  if(!isTablet())return;
+  if(!isTablet()||document.querySelector('.ipad-grid'))return;
 
-  const content=document.querySelector('.content');
-  const lista=document.getElementById('page-lista');
-  const quadra=document.getElementById('page-quadra');
-  const placar=document.getElementById('page-placar');
-  const hist=document.getElementById('page-hist');
+  const appContent=document.querySelector('.content');
+  const lista  =document.getElementById('page-lista');
+  const quadra =document.getElementById('page-quadra');
+  const placar =document.getElementById('page-placar');
+  const hist   =document.getElementById('page-hist');
 
-  // Só monta uma vez
-  if(document.querySelector('.ipad-grid'))return;
+  // Mostrar barra de aba do iPad
+  document.getElementById('ipad-tab-bar').style.display='flex';
+  document.getElementById('main-tabs').style.display='none';
 
-  // Cria grid
+  // Grid
   const grid=document.createElement('div');
   grid.className='ipad-grid';
 
-  // Coluna esquerda: Presença
+  // ── ESQUERDA: Presença ──
   const left=document.createElement('div');
   left.className='ipad-col ipad-left';
-  const ltitle=document.createElement('div');
-  ltitle.className='ipad-col-title';
-  ltitle.textContent='Presença';
-  left.appendChild(ltitle);
+  left.innerHTML='<div class="ipad-col-title">Presença</div>';
   left.appendChild(lista);
+  lista.classList.add('ipad-visible');
 
-  // Coluna centro: Quadra + Placar
+  // ── CENTRO: Cronômetro + Placar ──
   const center=document.createElement('div');
   center.className='ipad-col ipad-center';
-  const ctitle=document.createElement('div');
-  ctitle.className='ipad-col-title';
-  ctitle.textContent='Quadra & Placar';
-  center.appendChild(ctitle);
-  center.appendChild(quadra);
+  center.innerHTML='<div class="ipad-col-title">Cronômetro & Placar</div>';
+  // Pega só os cards de timer e placar de dentro de page-placar
   center.appendChild(placar);
+  placar.classList.add('ipad-visible');
 
-  // Coluna direita: Súmula
+  // ── DIREITA: Partida atual + Lista de espera (de dentro de page-quadra) ──
   const right=document.createElement('div');
   right.className='ipad-col ipad-right';
-  const rtitle=document.createElement('div');
-  rtitle.className='ipad-col-title';
-  rtitle.textContent='Súmula';
-  right.appendChild(rtitle);
-  right.appendChild(hist);
+  right.innerHTML='<div class="ipad-col-title">Quadra</div>';
+  right.appendChild(quadra);
+  quadra.classList.add('ipad-visible');
 
   grid.appendChild(left);
   grid.appendChild(center);
   grid.appendChild(right);
-  content.appendChild(grid);
+  appContent.appendChild(grid);
 
-  // Forçar todas as páginas visíveis
-  [lista,quadra,placar,hist].forEach(p=>{p.style.display='block';});
+  // Súmula fica fora do grid, escondida até clicar
+  hist.classList.add('ipad-sumula-panel');
+  appContent.appendChild(hist);
 
-  // Re-render
-  renderAssocList();renderPlayerList();renderCourt();renderHistory();updateTimerDisplay();
+  renderAssocList();renderPlayerList();renderCourt();updateTimerDisplay();
+}
+
+function toggleIPadSumula(){
+  const hist=document.getElementById('page-hist');
+  const btn=document.getElementById('ipad-tab-sumula');
+  const back=document.getElementById('ipad-tab-back');
+  const grid=document.querySelector('.ipad-grid');
+  const isOpen=hist.classList.contains('active');
+  if(isOpen){
+    hist.classList.remove('active');
+    grid.style.display='';
+    btn.classList.remove('active');back.style.display='none';
+  } else {
+    renderHistory();
+    hist.classList.add('active');
+    grid.style.display='none';
+    btn.classList.add('active');back.style.display='block';
+  }
+}
+
+function closeIPadSumula(){
+  const hist=document.getElementById('page-hist');
+  const btn=document.getElementById('ipad-tab-sumula');
+  const back=document.getElementById('ipad-tab-back');
+  const grid=document.querySelector('.ipad-grid');
+  hist.classList.remove('active');
+  grid.style.display='';
+  btn.classList.remove('active');back.style.display='none';
 }
 
 function teardownIPadLayout(){
   const grid=document.querySelector('.ipad-grid');
   if(!grid)return;
-  const content=document.querySelector('.content');
-  const lista=document.getElementById('page-lista');
-  const quadra=document.getElementById('page-quadra');
-  const placar=document.getElementById('page-placar');
-  const hist=document.getElementById('page-hist');
-  // Devolve páginas ao content
+  const appContent=document.querySelector('.content');
+  const lista  =document.getElementById('page-lista');
+  const quadra =document.getElementById('page-quadra');
+  const placar =document.getElementById('page-placar');
+  const hist   =document.getElementById('page-hist');
   [lista,quadra,placar,hist].forEach(p=>{
+    p.classList.remove('ipad-visible','ipad-sumula-panel','active');
     p.style.display='';
-    content.appendChild(p);
+    appContent.appendChild(p);
   });
   grid.remove();
-  // Restaura tab ativa
+  document.getElementById('ipad-tab-bar').style.display='none';
+  document.getElementById('main-tabs').style.display='flex';
   switchTab('lista');
 }
 
@@ -1147,7 +1183,6 @@ window.addEventListener('resize',()=>{
   renderCourt();
 });
 
-// Inicializa
 if(isTablet()){buildIPadLayout();}
 </script>
 </body>
