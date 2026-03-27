@@ -20,20 +20,20 @@ html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system
   .app{max-width:100%;flex-direction:column;background:transparent}
   .header{background:#fff;border-radius:0;border-bottom:1px solid #e5e7eb;padding:14px 24px 12px}
   .tabs{display:none}
+  #ipad-tab-bar{border-bottom:1px solid #e5e7eb}
   .content{padding:0;overflow:visible;background:transparent;flex:1;display:flex;flex-direction:column;min-height:0}
   .page{display:none}
   .page.ipad-visible{display:block!important}
 
-  /* Grid principal: Presença | Cronômetro+Placar | Quadra+Espera */
+  /* Grid: Presença | Placar+Cronômetro | Quadra+Espera+Súmula */
   .ipad-grid{
     display:grid;
-    grid-template-columns:300px 1fr 340px;
-    gap:12px;
-    padding:12px 16px 16px;
+    grid-template-columns:280px 1fr 360px;
+    gap:10px;
+    padding:10px 14px 14px;
     flex:1;
     min-height:0;
   }
-
   .ipad-col{
     background:#fff;
     border:1px solid #e5e7eb;
@@ -46,41 +46,68 @@ html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system
     min-height:0;
   }
   .ipad-col-title{
-    font-size:11px;font-weight:600;color:#9ca3af;
-    text-transform:uppercase;letter-spacing:0.07em;
+    font-size:10px;font-weight:600;color:#9ca3af;
+    text-transform:uppercase;letter-spacing:0.08em;
     padding-bottom:8px;border-bottom:1px solid #f3f4f6;
     flex-shrink:0;
   }
   .ipad-col .card{margin-bottom:0;flex-shrink:0}
   .ipad-col .stats-bar{margin-bottom:0;flex-shrink:0}
 
-  /* Centro: cronômetro maior para leitura a distância */
-  .ipad-center .timer-num{font-size:120px;letter-spacing:-4px}
-  .ipad-center .score-num{font-size:96px}
-  .ipad-center .timer-bar-wrap{height:6px}
+  /* ── CENTRO: Placar em destaque + Cronômetro compacto ── */
+  /* Placar com cores reais, números grandes */
+  .ipad-center .score-wrap{padding:16px 0 8px;gap:0;justify-content:space-around}
+  .ipad-center .score-num{font-size:120px;line-height:1}
+  .ipad-center .score-side{gap:6px}
+  .ipad-center .score-label-blue{font-size:15px;letter-spacing:0.08em}
+  .ipad-center .score-label-yellow{font-size:15px;letter-spacing:0.08em}
+  .ipad-center .score-controls button{padding:8px 14px;font-size:15px}
 
-  /* Súmula: só aparece quando selecionada via aba */
-  .ipad-sumula-panel{display:none}
-  .ipad-sumula-panel.active{
-    display:block;
-    padding:14px 16px 24px;
-    overflow-y:auto;
-    flex:1;
+  /* Placar azul: fundo azul real */
+  .ipad-placar-blue{
+    background:#1d4ed8;border-radius:12px;
+    padding:16px 20px;text-align:center;flex-shrink:0;
   }
-  /* Aba do iPad */
-  #ipad-tab-bar{
-    border-bottom:1px solid #e5e7eb;
+  .ipad-placar-blue .score-label-blue{color:#bfdbfe;font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+  .ipad-placar-blue .score-num{color:#ffffff;font-size:110px;font-weight:700;line-height:1;display:block;font-variant-numeric:tabular-nums}
+  .ipad-placar-blue .score-controls{display:flex;gap:8px;justify-content:center;margin-top:10px}
+  .ipad-placar-blue .score-controls button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:15px;font-weight:700;padding:8px 16px;cursor:pointer;font-family:inherit}
+  .ipad-placar-blue .score-controls button:active{background:rgba(255,255,255,0.3)}
+
+  /* Placar amarelo: fundo amarelo real */
+  .ipad-placar-yellow{
+    background:#ca8a04;border-radius:12px;
+    padding:16px 20px;text-align:center;flex-shrink:0;
   }
+  .ipad-placar-yellow .score-label-yellow{color:#fef08a;font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+  .ipad-placar-yellow .score-num{color:#ffffff;font-size:110px;font-weight:700;line-height:1;display:block;font-variant-numeric:tabular-nums}
+  .ipad-placar-yellow .score-controls{display:flex;gap:8px;justify-content:center;margin-top:10px}
+  .ipad-placar-yellow .score-controls button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:#fff;font-size:15px;font-weight:700;padding:8px 16px;cursor:pointer;font-family:inherit}
+  .ipad-placar-yellow .score-controls button:active{background:rgba(255,255,255,0.3)}
+
+  /* Divisor × entre os placares */
+  .ipad-vs{text-align:center;font-size:32px;color:#d1d5db;padding:4px 0;flex-shrink:0}
+
+  /* Cronômetro menor e compacto abaixo do placar */
+  .ipad-center .timer-num{font-size:72px;letter-spacing:-2px}
+  .ipad-center .timer-wrap{padding:10px 0 6px}
+  .ipad-center .timer-sub{font-size:11px}
+  .ipad-center .timer-bar-wrap{height:4px;margin:6px 0 10px}
+  .ipad-center .btn{padding:9px 12px;font-size:12px}
+
+  /* Súmula dentro da coluna direita, abaixo da espera */
+  .ipad-sumula-inline{flex-shrink:0}
 }
 
 @media(min-width:768px) and (orientation:landscape){
   .ipad-grid{
-    grid-template-columns:280px 1fr 320px;
-    padding:10px 14px 14px;
-    gap:10px;
+    grid-template-columns:260px 1fr 340px;
+    padding:8px 12px 12px;
+    gap:8px;
   }
-  .ipad-center .timer-num{font-size:140px}
-  .ipad-center .score-num{font-size:110px}
+  .ipad-placar-blue .score-num,
+  .ipad-placar-yellow .score-num{font-size:130px}
+  .ipad-center .timer-num{font-size:80px}
 }
 .header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid #eee;flex-shrink:0;background:#fff}
 .header-left{display:flex;align-items:center;gap:10px}
@@ -967,11 +994,19 @@ function resetTimer(){
 function changeScore(team,delta){
   if(team==='blue'){S.scoreBlue=Math.max(0,S.scoreBlue+delta);document.getElementById('score-blue').textContent=S.scoreBlue;}
   else{S.scoreYellow=Math.max(0,S.scoreYellow+delta);document.getElementById('score-yellow').textContent=S.scoreYellow;}
+  syncIPadScore();
 }
 function resetScore(){
   S.scoreBlue=0;S.scoreYellow=0;
   document.getElementById('score-blue').textContent='0';
   document.getElementById('score-yellow').textContent='0';
+  syncIPadScore();
+}
+function syncIPadScore(){
+  const bi=document.getElementById('score-blue-ipad');
+  const yi=document.getElementById('score-yellow-ipad');
+  if(bi)bi.textContent=S.scoreBlue;
+  if(yi)yi.textContent=S.scoreYellow;
 }
 
 // ─── HISTÓRICO ───────────────────────────────────────────
@@ -1085,11 +1120,9 @@ function buildIPadLayout(){
   const placar =document.getElementById('page-placar');
   const hist   =document.getElementById('page-hist');
 
-  // Mostrar barra de aba do iPad
-  document.getElementById('ipad-tab-bar').style.display='flex';
+  document.getElementById('ipad-tab-bar').style.display='none'; // sem aba extra
   document.getElementById('main-tabs').style.display='none';
 
-  // Grid
   const grid=document.createElement('div');
   grid.className='ipad-grid';
 
@@ -1100,60 +1133,84 @@ function buildIPadLayout(){
   left.appendChild(lista);
   lista.classList.add('ipad-visible');
 
-  // ── CENTRO: Cronômetro + Placar ──
+  // ── CENTRO: Placar colorido em destaque + Cronômetro ──
   const center=document.createElement('div');
   center.className='ipad-col ipad-center';
-  center.innerHTML='<div class="ipad-col-title">Cronômetro & Placar</div>';
-  // Pega só os cards de timer e placar de dentro de page-placar
-  center.appendChild(placar);
-  placar.classList.add('ipad-visible');
+  center.innerHTML='<div class="ipad-col-title">Placar</div>';
 
-  // ── DIREITA: Partida atual + Lista de espera (de dentro de page-quadra) ──
+  // Placar Azul
+  const pbBlue=document.createElement('div');
+  pbBlue.className='ipad-placar-blue';
+  pbBlue.innerHTML=`
+    <span class="score-label-blue">🔵 Azul</span>
+    <span class="score-num" id="score-blue-ipad">0</span>
+    <div class="score-controls">
+      <button onclick="changeScore('blue',2)">+2</button>
+      <button onclick="changeScore('blue',3)">+3</button>
+      <button onclick="changeScore('blue',-1)">−</button>
+    </div>`;
+  center.appendChild(pbBlue);
+
+  // VS
+  const vs=document.createElement('div');
+  vs.className='ipad-vs';vs.textContent='×';
+  center.appendChild(vs);
+
+  // Placar Amarelo
+  const pbYellow=document.createElement('div');
+  pbYellow.className='ipad-placar-yellow';
+  pbYellow.innerHTML=`
+    <span class="score-label-yellow">🟡 Amarelo</span>
+    <span class="score-num" id="score-yellow-ipad">0</span>
+    <div class="score-controls">
+      <button onclick="changeScore('yellow',2)">+2</button>
+      <button onclick="changeScore('yellow',3)">+3</button>
+      <button onclick="changeScore('yellow',-1)">−</button>
+    </div>`;
+  center.appendChild(pbYellow);
+
+  // Cronômetro (page-placar sem o card de placar — só o timer card)
+  // Vamos colocar a page-placar inteira mas o CSS esconde o card de placar dela
+  placar.classList.add('ipad-visible');
+  // Oculta o card de placar original no modo iPad (para não duplicar)
+  const placarCards=placar.querySelectorAll('.card');
+  if(placarCards.length>1) placarCards[1].style.display='none'; // esconde 2º card (placar original)
+  center.appendChild(placar);
+
+  // ── DIREITA: Quadra + Lista de espera + Súmula ──
   const right=document.createElement('div');
   right.className='ipad-col ipad-right';
   right.innerHTML='<div class="ipad-col-title">Quadra</div>';
-  right.appendChild(quadra);
   quadra.classList.add('ipad-visible');
+  right.appendChild(quadra);
+  // Súmula inline no final da coluna direita
+  hist.classList.add('ipad-visible');
+  const sumulaWrap=document.createElement('div');
+  sumulaWrap.className='ipad-sumula-inline';
+  sumulaWrap.innerHTML='<div class="ipad-col-title" style="margin-top:8px">Súmula</div>';
+  sumulaWrap.appendChild(hist);
+  right.appendChild(sumulaWrap);
 
   grid.appendChild(left);
   grid.appendChild(center);
   grid.appendChild(right);
   appContent.appendChild(grid);
 
-  // Súmula fica fora do grid, escondida até clicar
-  hist.classList.add('ipad-sumula-panel');
-  appContent.appendChild(hist);
+  // Sincronizar placares ipad com os originais
+  syncIPadScore();
 
-  renderAssocList();renderPlayerList();renderCourt();updateTimerDisplay();
+  renderAssocList();renderPlayerList();renderCourt();renderHistory();updateTimerDisplay();
 }
 
-function toggleIPadSumula(){
-  const hist=document.getElementById('page-hist');
-  const btn=document.getElementById('ipad-tab-sumula');
-  const back=document.getElementById('ipad-tab-back');
-  const grid=document.querySelector('.ipad-grid');
-  const isOpen=hist.classList.contains('active');
-  if(isOpen){
-    hist.classList.remove('active');
-    grid.style.display='';
-    btn.classList.remove('active');back.style.display='none';
-  } else {
-    renderHistory();
-    hist.classList.add('active');
-    grid.style.display='none';
-    btn.classList.add('active');back.style.display='block';
-  }
+// Sincroniza os displays de placar do iPad com os valores do estado
+function syncIPadScore(){
+  const bi=document.getElementById('score-blue-ipad');
+  const yi=document.getElementById('score-yellow-ipad');
+  if(bi)bi.textContent=S.scoreBlue;
+  if(yi)yi.textContent=S.scoreYellow;
 }
 
-function closeIPadSumula(){
-  const hist=document.getElementById('page-hist');
-  const btn=document.getElementById('ipad-tab-sumula');
-  const back=document.getElementById('ipad-tab-back');
-  const grid=document.querySelector('.ipad-grid');
-  hist.classList.remove('active');
-  grid.style.display='';
-  btn.classList.remove('active');back.style.display='none';
-}
+// toggleIPadSumula/closeIPadSumula removidos — súmula agora é inline na coluna direita
 
 function teardownIPadLayout(){
   const grid=document.querySelector('.ipad-grid');
@@ -1163,13 +1220,15 @@ function teardownIPadLayout(){
   const quadra =document.getElementById('page-quadra');
   const placar =document.getElementById('page-placar');
   const hist   =document.getElementById('page-hist');
+  // Restaurar card de placar original se foi ocultado
+  const placarCards=placar.querySelectorAll('.card');
+  if(placarCards.length>1) placarCards[1].style.display='';
   [lista,quadra,placar,hist].forEach(p=>{
-    p.classList.remove('ipad-visible','ipad-sumula-panel','active');
+    p.classList.remove('ipad-visible','ipad-sumula-inline','active');
     p.style.display='';
     appContent.appendChild(p);
   });
   grid.remove();
-  document.getElementById('ipad-tab-bar').style.display='none';
   document.getElementById('main-tabs').style.display='flex';
   switchTab('lista');
 }
