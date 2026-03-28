@@ -124,6 +124,14 @@ html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system
     font-size:52px;font-weight:700;color:#ffffff;letter-spacing:-2px;
     font-variant-numeric:tabular-nums;
   }
+  /* No iPad o cronômetro usa display separado grande */
+  .ipad-timer-big{
+    font-size:140px;font-weight:700;color:#ffffff;letter-spacing:-6px;
+    font-variant-numeric:tabular-nums;line-height:1;text-align:center;
+    transition:color .3s;
+  }
+  .ipad-timer-big.warn{color:#eab308}
+  .ipad-timer-big.danger{color:#ef4444;animation:ringpulse 1s ease-in-out infinite}
   .ipad-timer-digits.warn{color:#eab308}
   .ipad-timer-digits.danger{color:#ef4444}
   /* Status */
@@ -158,7 +166,7 @@ html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system
   }
   .ipad-placar-blue .ipad-score-num,
   .ipad-placar-yellow .ipad-score-num{font-size:96px}
-  .ipad-center .timer-num{font-size:64px}
+  .ipad-center .timer-num{font-size:150px;letter-spacing:-4px}
 }
 .header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid #eee;flex-shrink:0;background:#fff}
 .header-left{display:flex;align-items:center;gap:10px}
@@ -1013,18 +1021,13 @@ function updateTimerDisplay(){
   const ibtnPause=document.getElementById('ipad-btn-pause');
   if(idigits){
     idigits.textContent=timeStr;
-    idigits.className='ipad-timer-digits'+(danger?' danger':warn?' warn':'');
+    idigits.className='ipad-timer-big'+(danger?' danger':warn?' warn':'');
   }
   if(istatus){
     istatus.textContent=statusTxt;
     istatus.className='ipad-timer-status'+(danger?' danger':warn?' warn':'');
   }
-  if(iring&&window._ipadTimerCircum){
-    const pct=S.timerSecs/dur;
-    const offset=window._ipadTimerCircum*(1-pct);
-    iring.style.strokeDashoffset=offset;
-    iring.className='ring-prog'+(danger?' danger':warn?' warn':'');
-  }
+  // anel SVG removido — display simples
   if(ibtnStart){ibtnStart.disabled=S.timerRunning;}
   if(ibtnPause){ibtnPause.disabled=!S.timerRunning;}
 }
@@ -1252,19 +1255,10 @@ function buildIPadLayout(){
   // Cronômetro hero — elemento visual principal
   const timerHero=document.createElement('div');
   timerHero.className='ipad-timer-hero';
-  const CIRC=140; // raio do anel
-  const R=CIRC/2-8;
-  const CIRCUM=2*Math.PI*R;
+  // display simples sem anel SVG
   timerHero.innerHTML=`
     <div class="ipad-timer-label">Cronômetro · 10 min</div>
-    <div class="ipad-timer-ring" style="width:\${CIRC}px;height:\${CIRC}px">
-      <svg width="\${CIRC}" height="\${CIRC}" viewBox="0 0 \${CIRC} \${CIRC}">
-        <circle class="ring-bg" cx="\${CIRC/2}" cy="\${CIRC/2}" r="\${R}"/>
-        <circle class="ring-prog" id="ipad-ring" cx="\${CIRC/2}" cy="\${CIRC/2}" r="\${R}"
-          stroke-dasharray="\${CIRCUM}" stroke-dashoffset="0"/>
-      </svg>
-      <div class="ipad-timer-digits" id="ipad-timer-digits">10:00</div>
-    </div>
+    <div class="ipad-timer-big" id="ipad-timer-digits">10:00</div>
     <div class="ipad-timer-status" id="ipad-timer-status">Pronto para iniciar</div>
     <div class="ipad-timer-btns">
       <button class="ipad-timer-btn-start" id="ipad-btn-start" onclick="startTimer()">▶ Iniciar</button>
