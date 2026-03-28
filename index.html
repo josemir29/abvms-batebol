@@ -788,163 +788,102 @@ function renderCourt(){
 
 // ─── DECLARAR VENCEDOR ────────────────────────────────────
 function declareWinner(winner){
+  const snap=checkSnapshot();
   const ts=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   S.gameCount++;
 
   // Contabilizar stats
   [...S.teamBlue,...S.teamYellow].forEach(id=>{
-    const p=byId(id); if(!p)return;
+    const p=byId(id);if(!p)return;
     p.gamesPlayed++;
     if(!S.stats[p.name])S.stats[p.name]={wins:0,games:0};
     S.stats[p.name].games++;
-    if((winner==='blue'&&S.teamBlue.includes(id))||(winner==='yellow'&&S.teamYellow.includes(id))){p.wins++;S.stats[p.name].wins++;}
+    if((winner==='blue'&&S.teamBlue.includes(id))||(winner==='yellow'&&S.teamYellow.includes(id))){
+      p.wins++;S.stats[p.name].wins++;
+    }
   });
 
   const nB=S.teamBlue.map(id=>{const p=byId(id);return p?p.name:''}).filter(Boolean).join(', ');
   const nY=S.teamYellow.map(id=>{const p=byId(id);return p?p.name:''}).filter(Boolean).join(', ');
-  const res=winner==='draw'?'Empate → +2 min':winner==='blue'?'🔵 Azul venceu ('+S.scoreBlue+'×'+S.scoreYellow+')':'🟡 Amarelo venceu ('+S.scoreBlue+'×'+S.scoreYellow+')';
+  const res=winner==='draw'?'Empate → +2 min':
+    winner==='blue'?'🔵 Azul venceu ('+S.scoreBlue+'×'+S.scoreYellow+')':
+    '🟡 Amarelo venceu ('+S.scoreBlue+'×'+S.scoreYellow+')';
   S.history.push({game:S.gameCount,ts,result:res,blue:nB,yellow:nY});
 
   // EMPATE — só disponível quando isNewGameContext
   if(winner==='draw'){
-    sndDraw(); resetScore();
-    // Empate não muda o contexto — continua como duas equipes novas (próxima pode ter +2)
-    // Mas reseta snapshot para a próxima partida
-    S.snapshotDone=false; S.snapshotIs17=false;
-    resetTimer(); renderCourt();
+    sndDraw();resetScore();
+    S.snapshotDone=false;S.snapshotIs17=false;
+    resetTimer();renderCourt();
     return;
   }
 
   sndWin();
 
-  const snap=checkSnapshot(); // usa snapshot fixado ou ao vivo
-  const winTeam=winner==='blue'?[...S.teamBlue]:[...S.teamYellow];
-  const loseTeam=winner==='blue'?[...S.teamYellow]:[...S.teamBlue];
+  const winTeam = winner==='blue'?[...S.teamBlue]:[...S.teamYellow];
+  const loseTeam= winner==='blue'?[...S.teamYellow]:[...S.teamBlue];
+  const vetColor= S.veteranTeam; // null se 1ª partida
+  const novColor= S.veteranTeam==='blue'?'yellow':S.veteranTeam==='yellow'?'blue':null;
 
-  if(winner==='blue'){S.blueWinsStreak++;S.yellowWinsStreak=0;}
-  else{S.yellowWinsStreak++;S.blueWinsStreak=0;}
+  // ── CASO 1: Sem veterano — 1ª partida do ciclo ──────────────────────
+  if(S.veteranTeam===null){
+    // Vencedor fica (vira veterano), perdedor vai pro FINAL da lista
+    S.waitList=[...S.waitList,...loseTeam];
+    const newTeam=S.waitList.length>=5?S.waitList.splice(0,5):[];
+    if(winner==='blue'){S.teamYellow=newTeam;}else{S.teamBlue=newTeam;}
+    S.veteranTeam=winner;
+    S.isNewGameContext=false;
 
-  /*
-    LÓGICA DE ROTATIVIDADE
-    ──────────────────────
+  // ── CASO 2: Com veterano — 2ª partida do ciclo ──────────────────────
+  } else {
+    const veteranIsWinner=(vetColor===winner);
 
-    Caso 1 — Veterano em quadra (2ª partida do ciclo) com menos de 17 (snap=false):
-      → veterano sai OBRIGATORIAMENTE pro final da lista (independente de vencer/perder)
-      → vencedor (se for o novato) fica em quadra como novo veterano? NÃO —
-        na verdade o novato agora começa seu ciclo: se ganhou, é sua 1ª vitória do ciclo
-      → o que saiu (veterano) vai pro FINAL da lista
-      → o perdedor (se for o novato): vai pro FINAL da lista
-      → entra próximo da lista na cor de quem saiu
-
-    Caso 2 — Veterano em quadra (2ª partida) com 17+ (snap=true):
-      → Se veterano VENCEU: saída dupla — vencedor primeiro na lista, depois perdedor, depois fila
-      → Se veterano PERDEU ou EMPATOU: rotação normal — perdedor (veterano) pro final, vencedor (novato) fica
-
-    Caso 3 — Sem veterano (1ª partida do ciclo):
-      → Vencedor fica em quadra (agora é veterano)
-      → Perdedor vai pro FINAL da lista
-      → Entra próximo da lista na cor do perdedor
-  */
-
-  // Identificar quem é veterano e quem é novato
-  const veteranIsWinner = S.veteranTeam !== null && S.veteranTeam === winner;
-  const veteranIsLoser  = S.veteranTeam !== null && S.veteranTeam !== winner && winner !== 'draw';
-
-  if(S.veteranTeam !== null){
-    // ── Tem veterano em quadra (2ª partida) ──
-    if(!snap){
-      // Menos de 17: veterano sai SEMPRE pro final da lista
-      // Identificar times
-      const vetTeam  = S.veteranTeam==='blue'?[...S.teamBlue]:[...S.teamYellow];
-      const novTeam  = S.veteranTeam==='blue'?[...S.teamYellow]:[...S.teamBlue];
-      const vetColor = S.veteranTeam;
-      const novColor = S.veteranTeam==='blue'?'yellow':'blue';
-
-      if(winner===vetColor){
-        // Veterano venceu, mas tem que sair mesmo assim
-        // Novato (perdedor) também vai pro final
-        S.waitList=[...S.waitList,...vetTeam,...novTeam]; // veterano primeiro pois chegou antes
-        // Na verdade ambos vão pro final — veterano primeiro pois tinha mais "tempo" na fila
-      } else {
-        // Novato venceu, veterano sai pro final
-        S.waitList=[...S.waitList,...vetTeam,...novTeam]; // vet sai, nov sai (nov perdeu)
-        // Novato vencedor fica? NÃO — o regulamento diz que na 2ª partida QUEM VENCEU A 1ª sai obrigatoriamente
-        // Quem venceu a 1ª é o veterano. Veterano sai. Novato (vencedor da 2ª) fica.
-        // Vamos corrigir: só o veterano vai pro final. Novato vencedor fica.
-        S.waitList=[...S.waitList,...vetTeam]; // só veterano vai pro final
-        // Novato fica, perdedor da vez é o novato? Não — novato venceu.
-        // Vencedor da 2ª é o novato → fica em quadra como "novo" (1ª partida do seu ciclo agora)
-        // Mas espera — se novato venceu, quem é o perdedor? Ninguém sai além do veterano?
-        // Sim: veterano sai (obrigatório), entra próximo da lista na cor do veterano
-        // Novato permanece como o novo "ocupante" da quadra
-      }
-
-      // Reconstruir: veterano sai pro final, próximo entra no lugar
-      // Resetar times
-      if(winner===vetColor){
-        // Ambos saem pro final (veterano foi obrigado, novato perdeu ou venceu — regulamento: ambos saem na 2ª independente)
-        S.waitList=[...S.waitList,...vetTeam,...novTeam];
-        // Entra dois novos times
+    if(snap){
+      // ── 17+: saída dupla SÓ se veterano venceu ──────────────────
+      if(veteranIsWinner){
+        // Ambos saem — os primeiros da waitList entram como novos times
+        // Vencedor volta na lista APÓS quem já estava esperando, mas ANTES do perdedor
+        S.waitList=[...S.waitList,...winTeam,...loseTeam];
         if(S.waitList.length>=10){
           S.teamBlue=S.waitList.splice(0,5);
           S.teamYellow=S.waitList.splice(0,5);
         } else if(S.waitList.length>=5){
-          if(vetColor==='blue'){S.teamBlue=S.waitList.splice(0,5);S.teamYellow=[];}
-          else{S.teamYellow=S.waitList.splice(0,5);S.teamBlue=[];}
+          S.teamBlue=S.waitList.splice(0,5);S.teamYellow=[];
         } else {S.teamBlue=[];S.teamYellow=[];}
-        S.veteranTeam=null;
-        S.isNewGameContext=true;
+        S.veteranTeam=null;S.isNewGameContext=true;
       } else {
-        // Novato venceu: veterano sai pro final, novato fica (começa novo ciclo)
-        S.waitList=[...S.waitList,...vetTeam];
-        // Entra próximo na cor do veterano
+        // Veterano perdeu/empatou: rotação normal
+        // Perdedor (veterano) vai pro FINAL, vencedor (novato) fica e vira veterano
+        S.waitList=[...S.waitList,...loseTeam];
         const newTeam=S.waitList.length>=5?S.waitList.splice(0,5):[];
-        if(vetColor==='blue'){S.teamBlue=newTeam;}else{S.teamYellow=newTeam;}
-        // Novato agora é o "residente" — veteranTeam é o novato (agora tem 1 vitória no ciclo)
-        S.veteranTeam=null; // novato começa ciclo novo como residente com 0 vitórias no par
-        // Na verdade: novato venceu a 2ª partida (a do ciclo do veterano). Agora novato é residente com 1 vitória no SEU ciclo
-        S.veteranTeam=novColor; // novato agora é o veterano (tem 1 vitória)
+        if(winner==='blue'){S.teamYellow=newTeam;}else{S.teamBlue=newTeam;}
+        S.veteranTeam=winner;
         S.isNewGameContext=false;
       }
 
     } else {
-      // 17+: saída dupla SOMENTE se veterano venceu
-      if(veteranIsWinner){
-        // Saída dupla: vencedor (veterano) volta primeiro, depois perdedor
-        S.waitList=[...winTeam,...loseTeam,...S.waitList];
+      // ── Menos de 17: veterano sai SEMPRE, independente do resultado ──
+      // Ambos saem: veterano (obrigatório) + novato (perdedor ou vencedor — ambos saem)
+      // Veterano vai pro final, depois novato
+      S.waitList=[...S.waitList,...winTeam,...loseTeam];
+      if(S.waitList.length>=10){
         S.teamBlue=S.waitList.splice(0,5);
         S.teamYellow=S.waitList.splice(0,5);
-        S.veteranTeam=null;
-        S.isNewGameContext=true;
-      } else {
-        // Veterano perdeu ou empatou: rotação normal
-        // Perdedor (veterano) vai pro final, vencedor (novato) fica
-        S.waitList=[...S.waitList,...loseTeam];
-        const newTeam=S.waitList.length>=5?S.waitList.splice(0,5):[];
-        if(winner==='blue'){S.teamYellow=newTeam;}else{S.teamBlue=newTeam;}
-        // Novato vencedor agora é veterano (1ª vitória do ciclo)
-        S.veteranTeam=winner;
-        S.isNewGameContext=false;
-      }
+      } else if(S.waitList.length>=5){
+        if(vetColor==='blue'){S.teamBlue=S.waitList.splice(0,5);S.teamYellow=[];}
+        else{S.teamYellow=S.waitList.splice(0,5);S.teamBlue=[];}
+      } else {S.teamBlue=[];S.teamYellow=[];}
+      S.veteranTeam=null;S.isNewGameContext=true;
     }
-
-  } else {
-    // ── Sem veterano: 1ª partida do ciclo ──
-    // Vencedor fica (agora é veterano), perdedor pro final da lista
-    S.waitList=[...S.waitList,...loseTeam];
-    const newTeam=S.waitList.length>=5?S.waitList.splice(0,5):[];
-    if(winner==='blue'){S.teamYellow=newTeam;}else{S.teamBlue=newTeam;}
-    S.veteranTeam=winner; // vencedor é agora veterano
-    S.isNewGameContext=false;
   }
 
-  // Reset snapshot para próxima partida
-  S.snapshotDone=false; S.snapshotIs17=false;
-  S.blueWinsStreak = S.veteranTeam==='blue'?1:0;
-  S.yellowWinsStreak = S.veteranTeam==='yellow'?1:0;
+  // Atualizar streaks
+  S.blueWinsStreak  = S.veteranTeam==='blue'?1:0;
+  S.yellowWinsStreak= S.veteranTeam==='yellow'?1:0;
 
-  resetScore(); resetTimer();
-  renderPlayerList(); renderAssocList(); renderCourt();
+  S.snapshotDone=false;S.snapshotIs17=false;
+  resetScore();resetTimer();
+  renderPlayerList();renderAssocList();renderCourt();renderHistory();
 }
 
 // ─── CRONÔMETRO ──────────────────────────────────────────
@@ -1145,7 +1084,7 @@ function resetAll(){
 }
 
 if('serviceWorker'in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{});});}
-renderAssocList();renderPlayerList();renderCourt();updateTimerDisplay();
+renderAssocList();renderPlayerList();renderCourt();renderHistory();updateTimerDisplay();
 
 // ── iPad dashboard layout ──────────────────────────────
 function isTablet(){return window.innerWidth>=768;}
