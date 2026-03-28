@@ -1255,7 +1255,7 @@ function buildIPadLayout(){
   const CIRC=140; // raio do anel
   const R=CIRC/2-8;
   const CIRCUM=2*Math.PI*R;
-  timerHero.innerHTML=\`
+  timerHero.innerHTML=`
     <div class="ipad-timer-label">Cronômetro · 10 min</div>
     <div class="ipad-timer-ring" style="width:\${CIRC}px;height:\${CIRC}px">
       <svg width="\${CIRC}" height="\${CIRC}" viewBox="0 0 \${CIRC} \${CIRC}">
@@ -1271,7 +1271,7 @@ function buildIPadLayout(){
       <button class="ipad-timer-btn-pause" id="ipad-btn-pause" onclick="pauseTimer()" disabled>⏸ Pausar</button>
       <button class="ipad-timer-btn-reset" onclick="resetTimer()">↺ Reset</button>
     </div>
-  \`;
+  `;
   // Guardar circunferência para usar no updateTimerDisplay
   timerHero._circum = CIRCUM;
   window._ipadTimerCircum = CIRCUM;
