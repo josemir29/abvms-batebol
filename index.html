@@ -97,12 +97,54 @@ html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system
   /* × entre placares */
   .ipad-vs{display:flex;align-items:center;justify-content:center;font-size:24px;color:#d1d5db;font-weight:300;width:24px}
 
-  /* Cronômetro compacto abaixo */
-  .ipad-center .timer-num{font-size:58px;letter-spacing:-2px}
-  .ipad-center .timer-wrap{padding:6px 0 4px}
-  .ipad-center .timer-sub{font-size:11px}
-  .ipad-center .timer-bar-wrap{height:4px;margin:4px 0 8px}
-  .ipad-center .btn{padding:8px 10px;font-size:12px}
+  /* Cronômetro hero no iPad — ocultar o card original do placar */
+  .ipad-timer-hero{
+    background:#1a1a1a;border-radius:16px;
+    padding:16px 20px 14px;flex-shrink:0;
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+  }
+  .ipad-timer-hero .ipad-timer-label{
+    font-size:10px;font-weight:700;color:#555;
+    text-transform:uppercase;letter-spacing:0.12em;
+  }
+  /* Anel SVG do cronômetro */
+  .ipad-timer-ring{position:relative;flex-shrink:0}
+  .ipad-timer-ring svg{transform:rotate(-90deg)}
+  .ipad-timer-ring .ring-bg{fill:none;stroke:#2a2a2a;stroke-width:8}
+  .ipad-timer-ring .ring-prog{
+    fill:none;stroke-width:8;stroke-linecap:round;
+    stroke:#ffffff;
+    transition:stroke-dashoffset .9s linear, stroke .3s;
+  }
+  .ipad-timer-ring .ring-prog.warn{stroke:#eab308}
+  .ipad-timer-ring .ring-prog.danger{stroke:#ef4444;animation:ringpulse 1s ease-in-out infinite}
+  @keyframes ringpulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .ipad-timer-digits{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:52px;font-weight:700;color:#ffffff;letter-spacing:-2px;
+    font-variant-numeric:tabular-nums;
+  }
+  .ipad-timer-digits.warn{color:#eab308}
+  .ipad-timer-digits.danger{color:#ef4444}
+  /* Status */
+  .ipad-timer-status{font-size:11px;color:#666;font-weight:500;text-align:center;min-height:16px}
+  .ipad-timer-status.warn{color:#eab308}
+  .ipad-timer-status.danger{color:#ef4444}
+  /* Botões do timer hero */
+  .ipad-timer-btns{display:flex;gap:8px;width:100%}
+  .ipad-timer-btns button{
+    flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:700;
+    cursor:pointer;font-family:inherit;border:none;transition:all .12s;
+  }
+  .ipad-timer-btns button:active{transform:scale(0.96)}
+  .ipad-timer-btn-start{background:#ffffff;color:#1a1a1a}
+  .ipad-timer-btn-pause{background:#2a2a2a;color:#888;border:1px solid #333!important}
+  .ipad-timer-btn-reset{background:#2a2a2a;color:#666;border:1px solid #333!important}
+
+  /* Ocultar page-placar original no modo iPad (usamos o hero) */
+  .ipad-center #page-placar{display:none!important}
+
+  /* Cronômetro original menor (não usado no ipad mas mantido para mobile) */
 
   /* Súmula dentro da coluna direita, abaixo da espera */
   .ipad-sumula-inline{flex-shrink:0}
@@ -944,29 +986,55 @@ function getTimerDuration(){return 600;} // 10 min fixo
 function updateTimerDisplay(){
   const dur=S.timerDuration;
   const m=Math.floor(S.timerSecs/60),s=S.timerSecs%60;
-  const d=document.getElementById('timer-display'),sub=document.getElementById('timer-status'),bar=document.getElementById('timer-bar');
-  d.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-  bar.style.width=((S.timerSecs/dur)*100)+'%';
+  const timeStr=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   const warn=S.timerSecs<=120&&S.timerSecs>0, danger=S.timerSecs<=30&&S.timerSecs>0;
-  d.className='timer-num'+(danger?' danger':warn?' warning':'');
-  bar.style.background=danger?'#dc2626':warn?'#d97706':'#1a1a1a';
-  if(!S.timerRunning&&S.timerSecs===0) sub.textContent='ACABOU! Verificar empate';
-  else if(!S.timerRunning&&S.timerSecs===dur) sub.textContent='Pronto para iniciar';
-  else if(danger) sub.textContent='⚠ FINALIZANDO...';
-  else if(warn) sub.textContent='⏰ ÚLTIMOS 2 MIN — acompanhe o placar!';
-  else if(S.timerRunning){
-    if(S.timerSecs>300) sub.textContent='Partida em andamento — snapshot aos 5 min restantes';
-    else sub.textContent='Partida em andamento — snapshot fixado ✓';
+  let statusTxt='';
+  if(!S.timerRunning&&S.timerSecs===0) statusTxt='ACABOU! Verificar empate';
+  else if(!S.timerRunning&&S.timerSecs===dur) statusTxt='Pronto para iniciar';
+  else if(danger) statusTxt='⚠ FINALIZANDO...';
+  else if(warn) statusTxt='⏰ ÚLTIMOS 2 MIN — acompanhe o placar!';
+  else if(S.timerRunning) statusTxt=S.timerSecs>300?'Em andamento — snapshot aos 5 min restantes':'Em andamento — snapshot fixado ✓';
+  else statusTxt='Pausado';
+
+  // ── Mobile: display normal ──
+  const d=document.getElementById('timer-display'),sub=document.getElementById('timer-status'),bar=document.getElementById('timer-bar');
+  if(d){
+    d.textContent=timeStr;
+    d.className='timer-num'+(danger?' danger':warn?' warning':'');
   }
-  else sub.textContent='Pausado';
+  if(bar){bar.style.width=((S.timerSecs/dur)*100)+'%';bar.style.background=danger?'#dc2626':warn?'#d97706':'#1a1a1a';}
+  if(sub)sub.textContent=statusTxt;
+
+  // ── iPad hero: anel circular ──
+  const idigits=document.getElementById('ipad-timer-digits');
+  const istatus=document.getElementById('ipad-timer-status');
+  const iring=document.getElementById('ipad-ring');
+  const ibtnStart=document.getElementById('ipad-btn-start');
+  const ibtnPause=document.getElementById('ipad-btn-pause');
+  if(idigits){
+    idigits.textContent=timeStr;
+    idigits.className='ipad-timer-digits'+(danger?' danger':warn?' warn':'');
+  }
+  if(istatus){
+    istatus.textContent=statusTxt;
+    istatus.className='ipad-timer-status'+(danger?' danger':warn?' warn':'');
+  }
+  if(iring&&window._ipadTimerCircum){
+    const pct=S.timerSecs/dur;
+    const offset=window._ipadTimerCircum*(1-pct);
+    iring.style.strokeDashoffset=offset;
+    iring.className='ring-prog'+(danger?' danger':warn?' warn':'');
+  }
+  if(ibtnStart){ibtnStart.disabled=S.timerRunning;}
+  if(ibtnPause){ibtnPause.disabled=!S.timerRunning;}
 }
 
 function startTimer(){
   if(S.timerSecs===0){S.timerSecs=getTimerDuration();S.timerDuration=S.timerSecs;}
   if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
   S.timerRunning=true; S.warnedAt2=false;
-  document.getElementById('btn-start').disabled=true;
-  document.getElementById('btn-pause').disabled=false;
+  const bs=document.getElementById('btn-start'),bp=document.getElementById('btn-pause');
+  if(bs)bs.disabled=true; if(bp)bp.disabled=false;
   S.timer=setInterval(()=>{
     if(S.timerSecs>0){
       S.timerSecs--;
@@ -975,8 +1043,8 @@ function startTimer(){
       updateTimerDisplay();
     } else {
       clearInterval(S.timer); S.timerRunning=false;
-      document.getElementById('btn-start').disabled=false;
-      document.getElementById('btn-pause').disabled=true;
+      const bs=document.getElementById('btn-start'),bp=document.getElementById('btn-pause');
+      if(bs)bs.disabled=false; if(bp)bp.disabled=true;
       sndEnd(); updateTimerDisplay();
     }
   },1000);
@@ -984,8 +1052,8 @@ function startTimer(){
 
 function pauseTimer(){
   clearInterval(S.timer); S.timerRunning=false;
-  document.getElementById('btn-start').disabled=false;
-  document.getElementById('btn-pause').disabled=true;
+  const bs=document.getElementById('btn-start'),bp=document.getElementById('btn-pause');
+  if(bs)bs.disabled=false; if(bp)bp.disabled=true;
   updateTimerDisplay();
 }
 
@@ -994,8 +1062,8 @@ function resetTimer(){
   S.timerSecs=getTimerDuration(); S.timerDuration=S.timerSecs;
   S.warnedAt2=false;
   S.snapshotDone=false; S.snapshotIs17=false;
-  document.getElementById('btn-start').disabled=false;
-  document.getElementById('btn-pause').disabled=true;
+  const bs=document.getElementById('btn-start'),bp=document.getElementById('btn-pause');
+  if(bs)bs.disabled=false; if(bp)bp.disabled=true;
   updateTimerDisplay();
 }
 
@@ -1181,12 +1249,36 @@ function buildIPadLayout(){
   placarRow.appendChild(pbYellow);
   center.appendChild(placarRow);
 
-  // Cronômetro (page-placar sem o card de placar — só o timer card)
-  // Vamos colocar a page-placar inteira mas o CSS esconde o card de placar dela
+  // Cronômetro hero — elemento visual principal
+  const timerHero=document.createElement('div');
+  timerHero.className='ipad-timer-hero';
+  const CIRC=140; // raio do anel
+  const R=CIRC/2-8;
+  const CIRCUM=2*Math.PI*R;
+  timerHero.innerHTML=\`
+    <div class="ipad-timer-label">Cronômetro · 10 min</div>
+    <div class="ipad-timer-ring" style="width:\${CIRC}px;height:\${CIRC}px">
+      <svg width="\${CIRC}" height="\${CIRC}" viewBox="0 0 \${CIRC} \${CIRC}">
+        <circle class="ring-bg" cx="\${CIRC/2}" cy="\${CIRC/2}" r="\${R}"/>
+        <circle class="ring-prog" id="ipad-ring" cx="\${CIRC/2}" cy="\${CIRC/2}" r="\${R}"
+          stroke-dasharray="\${CIRCUM}" stroke-dashoffset="0"/>
+      </svg>
+      <div class="ipad-timer-digits" id="ipad-timer-digits">10:00</div>
+    </div>
+    <div class="ipad-timer-status" id="ipad-timer-status">Pronto para iniciar</div>
+    <div class="ipad-timer-btns">
+      <button class="ipad-timer-btn-start" id="ipad-btn-start" onclick="startTimer()">▶ Iniciar</button>
+      <button class="ipad-timer-btn-pause" id="ipad-btn-pause" onclick="pauseTimer()" disabled>⏸ Pausar</button>
+      <button class="ipad-timer-btn-reset" onclick="resetTimer()">↺ Reset</button>
+    </div>
+  \`;
+  // Guardar circunferência para usar no updateTimerDisplay
+  timerHero._circum = CIRCUM;
+  window._ipadTimerCircum = CIRCUM;
+  center.appendChild(timerHero);
+
+  // page-placar fica no DOM mas oculta (mobile usa, iPad usa hero)
   placar.classList.add('ipad-visible');
-  // Oculta o card de placar original no modo iPad (para não duplicar)
-  const placarCards=placar.querySelectorAll('.card');
-  if(placarCards.length>1) placarCards[1].style.display='none'; // esconde 2º card (placar original)
   center.appendChild(placar);
 
   // ── DIREITA: Quadra + Lista de espera + Súmula ──
