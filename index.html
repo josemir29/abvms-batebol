@@ -544,19 +544,26 @@ function courtCount(){return S.teamBlue.length + S.teamYellow.length;}
 // Snapshot: retorna true se 17+ presentes
 // Só pode ser "registrado" antes dos 5 min (timerSecs > 300)
 function checkSnapshot(){
-  // Se o snapshot já foi fixado, retorna o valor fixado
+  // Snapshot sempre travado — usa S.snapshotIs17 se disponível
   if(S.snapshotDone) return S.snapshotIs17;
-  // Ainda não fixado: retorna o valor atual ao vivo
+  // Fallback ao vivo (1ª partida, antes de iniciar)
   return totalPresent() >= 17;
 }
 
-// Fixa o snapshot quando o cronômetro passa de 5 min restantes
-function tryFixSnapshot(){
-  if(!S.snapshotDone && S.timerRunning && S.timerSecs <= 300){
-    S.snapshotDone = true;
-    S.snapshotIs17 = totalPresent() >= 17;
-    renderCourt(); // atualiza aviso
+// Trava o snapshot NO INÍCIO da partida (chamado ao clicar Iniciar)
+// Garante que saída de jogador durante a partida não afeta a regra
+function lockSnapshot(){
+  // Só trava na 2ª partida (quando há veterano) e se ainda não travado
+  if(!S.snapshotDone && S.veteranTeam !== null){
+    S.snapshotDone  = true;
+    S.snapshotIs17  = totalPresent() >= 17;
+    renderCourt();
   }
+}
+
+// Mantido por compatibilidade (chamado no tick do timer)
+function tryFixSnapshot(){
+  // Agora lockSnapshot() cuida disso no início — este é no-op
 }
 
 // ─── INIT ─────────────────────────────────────────────────
@@ -573,11 +580,19 @@ function switchTab(name){
 
 // ─── PRESENÇA ────────────────────────────────────────────
 function togglePresence(name,pos){
+  if(window._toggleLock) return; // proteção contra duplo clique
+  window._toggleLock = true;
+  setTimeout(()=>{ window._toggleLock = false; }, 350);
   sndClick();
   if(isPresentByName(name)){
     const p=S.players.find(x=>x.name===name); if(!p)return;
     // Se está em quadra, trata saída durante partida
     if(S.teamBlue.includes(p.id)||S.teamYellow.includes(p.id)){
+      // Jogador em quadra — pede confirmação antes de remover
+      if(!confirm(name + ' está em quadra agora.\nConfirma que ele foi embora?')){
+        window._toggleLock = false;
+        return;
+      }
       _removeFromCourt(p.id);
     } else {
       S.waitList=S.waitList.filter(i=>i!==p.id);
@@ -933,6 +948,7 @@ function updateTimerDisplay(){
 function startTimer(){
   if(S.timerSecs===0){S.timerSecs=getTimerDuration();S.timerDuration=S.timerSecs;}
   if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
+  lockSnapshot(); // trava presentes no início da partida
   S.timerRunning=true; S.warnedAt2=false;
   const bs=document.getElementById('btn-start'),bp=document.getElementById('btn-pause');
   if(bs)bs.disabled=true; if(bp)bp.disabled=false;
@@ -959,6 +975,10 @@ function pauseTimer(){
 }
 
 function resetTimer(){
+  // Proteção: não permite reset se partida em andamento e placar > 0
+  if(S.timerRunning && (S.scoreBlue > 0 || S.scoreYellow > 0)){
+    if(!confirm('Partida em andamento com placar '+S.scoreBlue+'×'+S.scoreYellow+'.\nTem certeza que quer resetar?')) return;
+  }
   clearInterval(S.timer); S.timerRunning=false;
   S.timerSecs=getTimerDuration(); S.timerDuration=S.timerSecs;
   S.warnedAt2=false;
