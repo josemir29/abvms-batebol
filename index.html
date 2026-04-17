@@ -544,27 +544,20 @@ function courtCount(){return S.teamBlue.length + S.teamYellow.length;}
 // Snapshot: retorna true se 17+ presentes
 // Só pode ser "registrado" antes dos 5 min (timerSecs > 300)
 function checkSnapshot(){
-  // Snapshot sempre travado — usa S.snapshotIs17 se disponível
-  if(S.snapshotDone) return S.snapshotIs17;
-  // Fallback ao vivo (1ª partida, antes de iniciar)
-  return totalPresent() >= 17;
+  // Sempre ao vivo — recalcula a cada mudança de presença
+  // Simples e correto: quem tá presente define a regra
+  return totalPresent() >= (window._limiarSaidaDupla || 17);
 }
 
-// Trava o snapshot NO INÍCIO da partida (chamado ao clicar Iniciar)
-// Garante que saída de jogador durante a partida não afeta a regra
-function lockSnapshot(){
-  // Só trava na 2ª partida (quando há veterano) e se ainda não travado
-  if(!S.snapshotDone && S.veteranTeam !== null){
-    S.snapshotDone  = true;
-    S.snapshotIs17  = totalPresent() >= 17;
-    renderCourt();
-  }
+// Atualiza snapshot quando presença muda
+function onPresencaChanged(){
+  S.snapshotIs17 = checkSnapshot();
+  renderCourt();
 }
 
 // Mantido por compatibilidade (chamado no tick do timer)
-function tryFixSnapshot(){
-  // Agora lockSnapshot() cuida disso no início — este é no-op
-}
+function tryFixSnapshot(){ /* no-op — regra é ao vivo */ }
+function lockSnapshot(){ /* no-op */ }
 
 // ─── INIT ─────────────────────────────────────────────────
 document.getElementById('game-date').textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'});
@@ -586,25 +579,40 @@ function togglePresence(name,pos){
   sndClick();
   if(isPresentByName(name)){
     const p=S.players.find(x=>x.name===name); if(!p)return;
-    // Se está em quadra, trata saída durante partida
-    if(S.teamBlue.includes(p.id)||S.teamYellow.includes(p.id)){
-      // Jogador em quadra — pede confirmação antes de remover
-      if(!confirm(name + ' está em quadra agora.\nConfirma que ele foi embora?')){
-        window._toggleLock = false;
-        return;
-      }
+
+    // Confirmação sempre ao desmarcar
+    const emQuadra = S.teamBlue.includes(p.id)||S.teamYellow.includes(p.id);
+    const emEspera = S.waitList.includes(p.id);
+    const veterano = S.veteranTeam==='blue'
+      ? S.teamBlue.includes(p.id)
+      : S.veteranTeam==='yellow'
+      ? S.teamYellow.includes(p.id) : false;
+
+    let msg = name + ' — confirma que foi embora?';
+    if(emQuadra) msg = name + ' está EM QUADRA agora.\nConfirma que foi embora?';
+
+    if(!confirm(msg)){
+      window._toggleLock = false;
+      return;
+    }
+
+    if(emQuadra){
       _removeFromCourt(p.id);
     } else {
-      S.waitList=S.waitList.filter(i=>i!==p.id);
+      S.waitList = S.waitList.filter(i=>i!==p.id);
     }
-    S.players=S.players.filter(x=>x.id!==p.id);
+    S.players = S.players.filter(x=>x.id!==p.id);
+    onPresencaChanged(); // recalcula regra saída dupla
+
   } else {
-    const id=Date.now()+Math.random();
-    const rEntry=ROSTER.find(r=>r.name===name);
-    const age=rEntry?rEntry.age:null;
+    // Marcar presença — vai pro FINAL da fila (ordem de chegada)
+    const id = Date.now()+Math.random();
+    const rEntry = ROSTER.find(r=>r.name===name);
+    const age = rEntry ? rEntry.age : null;
     S.players.push({id,name,pos,age,isGuest:false,gamesPlayed:0,wins:0});
     S.waitList.push(id);
-    if(!S.stats[name])S.stats[name]={wins:0,games:0};
+    if(!S.stats[name]) S.stats[name]={wins:0,games:0};
+    onPresencaChanged(); // recalcula regra saída dupla
     tryFormTeams();
   }
   updateStats(); renderAssocList(); renderPlayerList(); renderCourt();
@@ -622,6 +630,40 @@ function addGuest(){
 // Remove jogador que foi embora durante a partida
 // → sempre tenta completar o time com 5 pegando da waitList
 // → nunca duplica: remove do estado antes de buscar substituto
+// Substitui jogador em quadra: remove da quadra, coloca no FINAL da fila
+// Não sai da presença — volta a jogar quando chegar sua vez
+function substituirJogador(id){
+  const p = S.players.find(x=>x.id===id);
+  if(!p) return;
+  const inBlue   = S.teamBlue.includes(id);
+  const inYellow = S.teamYellow.includes(id);
+  if(!inBlue && !inYellow){ return; }
+
+  if(!confirm(p.name + ' vai para o final da fila para descansar.\nConfirma?')){
+    return;
+  }
+
+  // Remove do time
+  if(inBlue)   S.teamBlue   = S.teamBlue.filter(i=>i!==id);
+  if(inYellow) S.teamYellow = S.teamYellow.filter(i=>i!==id);
+
+  // Coloca no FINAL da fila (não sai da presença)
+  S.waitList = S.waitList.filter(i=>i!==id); // garante que não está duplicado
+  S.waitList.push(id);
+
+  // Puxa próximo da fila para completar o time
+  if(inBlue && S.teamBlue.length < 5 && S.waitList.length > 0){
+    const next = S.waitList.shift();
+    S.teamBlue.push(next);
+  } else if(inYellow && S.teamYellow.length < 5 && S.waitList.length > 0){
+    const next = S.waitList.shift();
+    S.teamYellow.push(next);
+  }
+
+  onPresencaChanged();
+  renderAssocList(); renderPlayerList(); renderCourt();
+}
+
 function _removeFromCourt(id){
   const inBlue  = S.teamBlue.includes(id);
   const inYellow = S.teamYellow.includes(id);
@@ -762,16 +804,12 @@ function renderCourt(){
     ri.textContent='1ª partida do ciclo — vencedor fica, perdedor vai pro final da fila';
   }
 
-  // Snapshot badge
-  if(S.snapshotDone){
-    si.style.display='block';
-    si.innerHTML='<span class="snap-badge '+(S.snapshotIs17?'snap-17':'snap-16')+'">'+(S.snapshotIs17?'📸 Snapshot: 17+ presentes':'📸 Snapshot: menos de 17')+'</span>';
-  } else if(S.timerRunning){
-    si.style.display='block';
-    si.innerHTML='<span class="snap-badge snap-16">⏱ Snapshot será fixado aos 5 min restantes</span>';
-  } else {
-    si.style.display='none';
-  }
+  // Contador de presentes ao vivo — regra dinâmica
+  const tot=totalPresent();
+  const lim=window._limiarSaidaDupla||17;
+  si.style.display='block';
+  si.innerHTML='<span class="snap-badge '+(tot>=lim?'snap-17':'snap-16')+'">'+
+    (tot>=lim?'⚡ '+tot+' presentes — saída dupla ATIVA':'👥 '+tot+' presentes — faltam '+(lim-tot)+' para saída dupla')+'</span>';
 
   // Botão empate: só quando contexto de dois times novos
   db.style.display=S.isNewGameContext?'block':'none';
